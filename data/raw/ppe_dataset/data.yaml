@@ -1,0 +1,11 @@
+path: data/raw/ppe_dataset
+
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 2
+
+names:
+  0: Reflective-Jacket
+  1: Safety-Helmet
