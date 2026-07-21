@@ -1,8 +1,13 @@
 from ultralytics import YOLO
 import yaml
 from pathlib import Path
-PROJECT_ROOT = Path("C:\Users\Admin\Desktop\Deep Learning\project\PPE Detection.yolov8\configs\train_config.yaml").resolve().parents[2]
+# PROJECT_ROOT = Path("C:\Users\Admin\Desktop\Deep Learning\project\PPE Detection.yolov8\configs\train_config.yaml").resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 CONFIG_PATH = PROJECT_ROOT / "configs" / "train_config.yaml"
+
+
+
 def load_config():
 
     with open(CONFIG_PATH, "r") as f:
