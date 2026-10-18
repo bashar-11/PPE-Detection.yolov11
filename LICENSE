@@ -19,15 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-NOTE ON THE DATASET
-
-This repository does NOT contain the PPE Detection dataset. The dataset is
-redistributed by Roboflow Universe under the Creative Commons Attribution 4.0
-International licence (CC BY 4.0) and remains the property of its original
-contributor. See README.dataset.md for the source and full attribution.
-
-The trained weights in models/best.pt are derived from that dataset and are
-released under the MIT licence above.
