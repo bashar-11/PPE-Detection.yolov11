@@ -9,7 +9,7 @@ Usage:
 import argparse
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from src.utils import load_yaml, project_path
 
@@ -29,7 +29,7 @@ def run(
     imgsz: int = 640,
     conf: float = 0.25,
     device: str | None = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Process a video and return the output directory plus elapsed time."""
     from ultralytics import YOLO
 
@@ -77,7 +77,9 @@ def run(
 
 def main() -> None:
     args = parse_args()
-    defaults: Dict[str, Any] = load_yaml(project_path("configs", "inference_config.yaml"))
+    defaults: dict[str, Any] = load_yaml(
+        project_path("configs", "inference_config.yaml")
+    )
     source = args.source or defaults.get("source")
     if not source:
         raise SystemExit(

@@ -1,11 +1,11 @@
-import streamlit as st
-from ultralytics import YOLO
-from PIL import Image
-import pandas as pd
-import cv2
-from pathlib import Path
 import tempfile
-import time
+from pathlib import Path
+
+import cv2
+import pandas as pd
+import streamlit as st
+from PIL import Image
+from ultralytics import YOLO
 
 # ==========================
 # Page Config & Custom CSS
@@ -14,10 +14,11 @@ st.set_page_config(
     page_title="Smart Safety Monitoring",
     page_icon="🛡️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-st.markdown("""
+st.markdown(
+    """
     <style>
     .main {background-color: #f8f9fa;}
     .st-tabs {font-weight: bold;}
@@ -50,7 +51,9 @@ st.markdown("""
         text-align: center;
     }
     </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # ==========================
 # Load Model
@@ -58,9 +61,11 @@ st.markdown("""
 PROJECT_ROOT = Path(__file__).resolve().parent
 MODEL_PATH = PROJECT_ROOT / "models" / "best.pt"
 
+
 @st.cache_resource
 def load_model():
     return YOLO(str(MODEL_PATH))
+
 
 model = load_model()
 
@@ -73,14 +78,27 @@ with st.sidebar:
     st.markdown("---")
     confidence = st.slider("🎯 Confidence Threshold", 0.1, 1.0, 0.25, 0.05)
     iou = st.slider("📏 IoU Threshold", 0.1, 1.0, 0.7, 0.05)
-    
+
     st.markdown("---")
     st.subheader("⚡ Performance Settings")
-    img_size = st.select_slider("📢 Inference Resolution", options=[320, 480, 640], value=640, help="Lower resolution increases video processing speed.")
-    frame_skip = st.slider("⏱ Frame Skip (speed-up)", 1, 5, 1, help="Process every N-th frame for faster playback.")
-    
+    img_size = st.select_slider(
+        "📢 Inference Resolution",
+        options=[320, 480, 640],
+        value=640,
+        help="Lower resolution increases video processing speed.",
+    )
+    frame_skip = st.slider(
+        "⏱ Frame Skip (speed-up)",
+        1,
+        5,
+        1,
+        help="Process every N-th frame for faster playback.",
+    )
+
     st.markdown("---")
-    st.info("💡 **Tip:** Reduce Inference Resolution or increase Frame Skip if video playback feels slow.")
+    st.info(
+        "💡 **Tip:** Reduce Inference Resolution or increase Frame Skip if video playback feels slow."
+    )
 
 # ==========================
 # Main Title
@@ -99,34 +117,41 @@ tab1, tab2, tab3 = st.tabs(["📄 Image Upload", "🎬 Video Upload", "📱 Live
 # --------------------------
 with tab1:
     st.subheader("Detect Objects in Images")
-    uploaded_img = st.file_uploader("Upload an Image", type=["jpg", "jpeg", "png"], key="img_uploader")
-    
+    uploaded_img = st.file_uploader(
+        "Upload an Image", type=["jpg", "jpeg", "png"], key="img_uploader"
+    )
+
     if uploaded_img:
         image = Image.open(uploaded_img)
-        
+
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("<div class='video-label'>📄 Original Image</div>", unsafe_allow_html=True)
+            st.markdown(
+                "<div class='video-label'>📄 Original Image</div>",
+                unsafe_allow_html=True,
+            )
             st.image(image, use_container_width=True)
-            
+
         with st.spinner("Processing..."):
             results = model.predict(image, conf=confidence, iou=iou, imgsz=img_size)
             annotated_img = results[0].plot()
-            
+
         with col2:
-            st.markdown("<div class='video-label'>🎯 Detection Result</div>", unsafe_allow_html=True)
+            st.markdown(
+                "<div class='video-label'>🎯 Detection Result</div>",
+                unsafe_allow_html=True,
+            )
             st.image(annotated_img, channels="BGR", use_container_width=True)
-            
+
         # Results Table
         detections = []
         for box in results[0].boxes:
             cls = int(box.cls)
             conf = float(box.conf)
-            detections.append({
-                "Class": model.names[cls].title(),
-                "Confidence": f"{conf:.2%}"
-            })
-            
+            detections.append(
+                {"Class": model.names[cls].title(), "Confidence": f"{conf:.2%}"}
+            )
+
         if detections:
             st.success(f"✅ Detected {len(detections)} object(s).")
             df = pd.DataFrame(detections)
@@ -143,52 +168,73 @@ with tab1:
 # --------------------------
 with tab2:
     st.subheader("Detect Objects in Recorded Videos")
-    uploaded_video = st.file_uploader("Upload a Video", type=["mp4", "avi", "mov"], key="vid_uploader")
-    
+    uploaded_video = st.file_uploader(
+        "Upload a Video", type=["mp4", "avi", "mov"], key="vid_uploader"
+    )
+
     if uploaded_video:
-        # Save video to temp file
-        tfile = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
-        tfile.write(uploaded_video.read())
-        
+        # Write the upload to a temp file for OpenCV to read. The `with` block
+        # is required, not decorative: on Windows an open handle blocks other
+        # processes from reading the file, and cv2.VideoCapture would fail.
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tfile:
+            tfile.write(uploaded_video.read())
+            temp_video_path = tfile.name
+
         st.markdown("---")
-        start_btn = st.button("▶ Start Synchronized Processing", type="primary", use_container_width=False)
-        
+        start_btn = st.button(
+            "▶ Start Synchronized Processing", type="primary", use_container_width=False
+        )
+
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("<div class='video-label'>📄 Original Stream</div>", unsafe_allow_html=True)
+            st.markdown(
+                "<div class='video-label'>📄 Original Stream</div>",
+                unsafe_allow_html=True,
+            )
             orig_placeholder = st.empty()
         with col2:
-            st.markdown("<div class='video-label'>🎯 Detection Stream</div>", unsafe_allow_html=True)
+            st.markdown(
+                "<div class='video-label'>🎯 Detection Stream</div>",
+                unsafe_allow_html=True,
+            )
             proc_placeholder = st.empty()
-            
+
         if start_btn:
-            cap = cv2.VideoCapture(tfile.name)
+            cap = cv2.VideoCapture(temp_video_path)
             frame_count = 0
-            
+
             # Temporary storage for last processed annotated frame for skipped frames
             last_annotated_rgb = None
-            
+
             while cap.isOpened():
                 ret, frame = cap.read()
                 if not ret:
                     break
-                
+
                 frame_count += 1
-                
+
                 # Convert original frame BGR to RGB
                 orig_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                
+
                 # Process frame based on frame_skip setting
                 if frame_count % frame_skip == 0 or last_annotated_rgb is None:
                     # Run Inference
-                    results = model.predict(frame, conf=confidence, iou=iou, imgsz=img_size, verbose=False)
+                    results = model.predict(
+                        frame, conf=confidence, iou=iou, imgsz=img_size, verbose=False
+                    )
                     annotated_frame = results[0].plot()
-                    last_annotated_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
-                
+                    last_annotated_rgb = cv2.cvtColor(
+                        annotated_frame, cv2.COLOR_BGR2RGB
+                    )
+
                 # Display both original and detected frames side by side in PERFECT SYNC and same size
-                orig_placeholder.image(orig_rgb, channels="RGB", use_container_width=True)
-                proc_placeholder.image(last_annotated_rgb, channels="RGB", use_container_width=True)
-                
+                orig_placeholder.image(
+                    orig_rgb, channels="RGB", use_container_width=True
+                )
+                proc_placeholder.image(
+                    last_annotated_rgb, channels="RGB", use_container_width=True
+                )
+
             cap.release()
             st.success("✅ Synchronized video processing completed!")
 
@@ -198,34 +244,38 @@ with tab2:
 with tab3:
     st.subheader("Real-Time Camera Detection")
     st.markdown("Click **Start** to open your webcam and run detections in real-time.")
-    
+
     col1, col2, _ = st.columns([1, 1, 2])
     with col1:
         start_cam = st.button("📱 Start Camera", use_container_width=True)
     with col2:
         stop_cam = st.button("⏹ Stop Camera", use_container_width=True)
-        
+
     cam_placeholder = st.empty()
-    
+
     if start_cam:
-        cap = cv2.VideoCapture(0) # 0 is the default local camera
+        cap = cv2.VideoCapture(0)  # 0 is the default local camera
         if not cap.isOpened():
             st.error("Error: Could not open webcam.")
         else:
-            st.session_state['run_cam'] = True
-            
-            while st.session_state.get('run_cam', False):
+            st.session_state["run_cam"] = True
+
+            while st.session_state.get("run_cam", False):
                 ret, frame = cap.read()
                 if not ret:
                     st.error("Error reading camera frame.")
                     break
-                    
-                results = model.predict(frame, conf=confidence, iou=iou, imgsz=img_size, verbose=False)
+
+                results = model.predict(
+                    frame, conf=confidence, iou=iou, imgsz=img_size, verbose=False
+                )
                 annotated_frame = results[0].plot()
                 annotated_frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
-                
-                cam_placeholder.image(annotated_frame, channels="RGB", use_container_width=True)
-                
+
+                cam_placeholder.image(
+                    annotated_frame, channels="RGB", use_container_width=True
+                )
+
     if stop_cam:
-        st.session_state['run_cam'] = False
+        st.session_state["run_cam"] = False
         cam_placeholder.info("Camera stopped.")

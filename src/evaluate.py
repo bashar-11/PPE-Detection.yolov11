@@ -11,7 +11,7 @@ Usage:
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from src.utils import (
     format_metrics,
@@ -36,7 +36,7 @@ def evaluate(
     device: str | None = None,
     project: str = OUTPUT_PROJECT,
     name: str = "ppe_eval",
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Run validation and return the headline metrics as a plain dict."""
     from ultralytics import YOLO
 
@@ -69,11 +69,11 @@ def evaluate(
     return summarize_metrics(metrics)
 
 
-def save_metrics(summary: Dict[str, float], out_dir: str = OUTPUT_PROJECT) -> Path:
+def save_metrics(summary: dict[str, float], out_dir: str = OUTPUT_PROJECT) -> Path:
     """Write the metrics summary to <out_dir>/metrics.json and return the path."""
     target = project_path(out_dir) / "metrics.json"
     target.parent.mkdir(parents=True, exist_ok=True)
-    payload: Dict[str, Any] = {"metrics": summary, "split": "test"}
+    payload: dict[str, Any] = {"metrics": summary, "split": "test"}
     with open(target, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=2)
     return target

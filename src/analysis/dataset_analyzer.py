@@ -7,7 +7,7 @@ Usage:
 
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
@@ -22,7 +22,9 @@ IMAGE_EXTS = ("*.jpg", "*.jpeg", "*.png")
 class DatasetAnalyzer:
     """Read a YOLO-format dataset and report its shape."""
 
-    def __init__(self, dataset_path: str | Path = DATASET_PATH, yaml_file: str | Path = YAML_FILE) -> None:
+    def __init__(
+        self, dataset_path: str | Path = DATASET_PATH, yaml_file: str | Path = YAML_FILE
+    ) -> None:
         self.dataset_path = Path(dataset_path)
         if not self.dataset_path.is_absolute():
             self.dataset_path = project_path(self.dataset_path)
@@ -37,7 +39,7 @@ class DatasetAnalyzer:
             )
 
         with open(yaml_path, "r", encoding="utf-8") as fh:
-            self.data: Dict[str, Any] = yaml.safe_load(fh)
+            self.data: dict[str, Any] = yaml.safe_load(fh)
 
         self.splits = ("train", "valid", "test")
 
@@ -53,9 +55,9 @@ class DatasetAnalyzer:
             return 0
         return len(list(folder.glob("*.txt")))
 
-    def summary(self) -> Dict[str, Dict[str, int]]:
+    def summary(self) -> dict[str, dict[str, int]]:
         """Return per-split image and label counts."""
-        result: Dict[str, Dict[str, int]] = {}
+        result: dict[str, dict[str, int]] = {}
         for split in self.splits:
             images = self.count_images(self.dataset_path / split / "images")
             labels = self.count_labels(self.dataset_path / split / "labels")

@@ -11,20 +11,31 @@ Usage:
 import argparse
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from src.utils import load_yaml, project_path
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Live PPE detection from a webcam.")
-    parser.add_argument("--camera", type=int, default=0, help="Camera index. 0 is usually the built-in webcam.")
+    parser.add_argument(
+        "--camera",
+        type=int,
+        default=0,
+        help="Camera index. 0 is usually the built-in webcam.",
+    )
     parser.add_argument("--conf", type=float, default=None)
     parser.add_argument("--model", default=None)
     return parser.parse_args()
 
 
-def run(camera_index: int = 0, model_path: str | Path = "models/best.pt", imgsz: int = 640, conf: float = 0.30, device: str | None = None) -> None:
+def run(
+    camera_index: int = 0,
+    model_path: str | Path = "models/best.pt",
+    imgsz: int = 640,
+    conf: float = 0.30,
+    device: str | None = None,
+) -> None:
     """
     Open the camera and run detection frame by frame.
 
@@ -94,7 +105,9 @@ def run(camera_index: int = 0, model_path: str | Path = "models/best.pt", imgsz:
 
 def main() -> None:
     args = parse_args()
-    defaults: Dict[str, Any] = load_yaml(project_path("configs", "inference_config.yaml"))
+    defaults: dict[str, Any] = load_yaml(
+        project_path("configs", "inference_config.yaml")
+    )
     run(
         camera_index=args.camera,
         model_path=args.model or defaults.get("model", "models/best.pt"),

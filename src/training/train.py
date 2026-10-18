@@ -9,14 +9,14 @@ Usage:
 """
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from src.utils import load_yaml, project_path
 
 CONFIG_PATH = "configs/train_config.yaml"
 
 
-def load_train_config(path: str | Path = CONFIG_PATH) -> Dict[str, Any]:
+def load_train_config(path: str | Path = CONFIG_PATH) -> dict[str, Any]:
     """Load the training configuration."""
     config = load_yaml(project_path(path))
     if not config:
@@ -58,7 +58,7 @@ def check_gpu() -> str:
     return "0"
 
 
-def train_model(model: Any, config: Dict[str, Any], device: str) -> None:
+def train_model(model: Any, config: dict[str, Any], device: str) -> None:
     """Run Ultralytics training with the supplied configuration."""
     model.train(
         data=config["data"],

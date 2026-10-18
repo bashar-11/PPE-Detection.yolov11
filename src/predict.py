@@ -8,7 +8,7 @@ Usage:
 
 import argparse
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from src.utils import load_yaml, project_path
 
@@ -16,7 +16,9 @@ DEFAULT_SOURCE = "tests/test_img"
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Batch PPE detection over a folder of images.")
+    parser = argparse.ArgumentParser(
+        description="Batch PPE detection over a folder of images."
+    )
     parser.add_argument("--source", default=None, help="Image file or directory.")
     parser.add_argument("--model", default=None, help="Path to weights.")
     parser.add_argument("--imgsz", type=int, default=None)
@@ -72,7 +74,9 @@ def run(
 
 def main() -> None:
     args = parse_args()
-    defaults: Dict[str, Any] = load_yaml(project_path("configs", "inference_config.yaml"))
+    defaults: dict[str, Any] = load_yaml(
+        project_path("configs", "inference_config.yaml")
+    )
     out = run(
         source=args.source or DEFAULT_SOURCE,
         model_path=args.model or defaults.get("model", "models/best.pt"),

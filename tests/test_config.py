@@ -7,7 +7,13 @@ a couple of seconds on a clean CI runner.
 
 import pytest
 
-from src.utils import format_metrics, load_yaml, project_path, resolve_device, summarize_metrics
+from src.utils import (
+    format_metrics,
+    load_yaml,
+    project_path,
+    resolve_device,
+    summarize_metrics,
+)
 
 
 class TestLoadYaml:

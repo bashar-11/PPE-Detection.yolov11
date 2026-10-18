@@ -6,14 +6,14 @@ exercise this logic without loading a model.
 """
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
-def load_yaml(path: Path) -> Dict[str, Any]:
+def load_yaml(path: Path) -> dict[str, Any]:
     """Load a YAML config, returning an empty dict for a missing or empty file."""
     path = Path(path)
     if not path.exists():
@@ -41,11 +41,11 @@ def resolve_device(preferred: str | None = None) -> str:
         import torch
 
         return "0" if torch.cuda.is_available() else "cpu"
-    except Exception:
+    except Exception:  # noqa: BLE001 - torch is optional; fall back to CPU when it cannot be imported
         return "cpu"
 
 
-def summarize_metrics(metrics: Any) -> Dict[str, float]:
+def summarize_metrics(metrics: Any) -> dict[str, float]:
     """
     Pull the four headline detection numbers out of an Ultralytics
     DetMetrics object into a plain dict, so they can be printed, logged and
@@ -62,7 +62,7 @@ def summarize_metrics(metrics: Any) -> Dict[str, float]:
     }
 
 
-def format_metrics(summary: Dict[str, float]) -> str:
+def format_metrics(summary: dict[str, float]) -> str:
     """Render a metrics summary as an aligned, human-readable block."""
     if not summary:
         return "No metrics returned."
