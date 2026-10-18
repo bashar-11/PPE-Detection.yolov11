@@ -1,91 +1,93 @@
+"""
+Summarise the PPE detection dataset: class list, image and label counts per split.
+
+Usage:
+    python -m src.analysis.dataset_analyzer
+"""
+
+import sys
 from pathlib import Path
+from typing import Any, Dict
+
 import yaml
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+from src.utils import project_path
 
-DATASET_PATH = PROJECT_ROOT / "data" / "raw" / "ppe_dataset"
+DATASET_PATH = "data/raw/ppe_dataset"
+YAML_FILE = "configs/data.yaml"
 
-YAML_FILE = DATASET_PATH / "data.yaml"
+IMAGE_EXTS = ("*.jpg", "*.jpeg", "*.png")
 
 
 class DatasetAnalyzer:
+    """Read a YOLO-format dataset and report its shape."""
 
-    def __init__(self):
+    def __init__(self, dataset_path: str | Path = DATASET_PATH, yaml_file: str | Path = YAML_FILE) -> None:
+        self.dataset_path = Path(dataset_path)
+        if not self.dataset_path.is_absolute():
+            self.dataset_path = project_path(self.dataset_path)
 
-        with open(YAML_FILE, "r") as f:
-            self.data = yaml.safe_load(f)
+        yaml_path = Path(yaml_file)
+        if not yaml_path.is_absolute():
+            yaml_path = project_path(yaml_path)
+        if not yaml_path.exists():
+            raise FileNotFoundError(
+                f"Dataset config not found: {yaml_path}\n"
+                "See README.dataset.md for how to obtain the dataset."
+            )
 
-    def count_images(self, folder):
+        with open(yaml_path, "r", encoding="utf-8") as fh:
+            self.data: Dict[str, Any] = yaml.safe_load(fh)
 
-        exts = ("*.jpg", "*.jpeg", "*.png")
+        self.splits = ("train", "valid", "test")
 
-        total = 0
+    def count_images(self, folder: Path) -> int:
+        """Count image files across the common extensions."""
+        if not folder.exists():
+            return 0
+        return sum(len(list(folder.glob(ext))) for ext in IMAGE_EXTS)
 
-        for ext in exts:
-
-            total += len(list(folder.glob(ext)))
-
-        return total
-
-    def count_labels(self, folder):
-
+    def count_labels(self, folder: Path) -> int:
+        """Count YOLO label files."""
+        if not folder.exists():
+            return 0
         return len(list(folder.glob("*.txt")))
 
-    def print_summary(self):
+    def summary(self) -> Dict[str, Dict[str, int]]:
+        """Return per-split image and label counts."""
+        result: Dict[str, Dict[str, int]] = {}
+        for split in self.splits:
+            images = self.count_images(self.dataset_path / split / "images")
+            labels = self.count_labels(self.dataset_path / split / "labels")
+            result[split] = {"images": images, "labels": labels}
+        return result
 
-        print("=" * 60)
-
-        print("SMART SAFETY DATASET REPORT")
-
-        print("=" * 60)
-
+    def print_summary(self) -> None:
+        print("=" * 46)
+        print("PPE DETECTION DATASET REPORT")
+        print("=" * 46)
+        print(f"Root: {self.dataset_path}")
+        print(f"Classes: {self.data.get('nc', 'unknown')}")
         print()
 
-        print(f"Classes : {self.data['nc']}")
-
+        names = self.data.get("names", {})
+        for idx, name in sorted(names.items(), key=lambda kv: int(kv[0])):
+            print(f"  {idx} -> {name}")
         print()
 
-        print("Class Names")
+        print(f"{'Split':<8}{'Images':>10}{'Labels':>10}")
+        for split, counts in self.summary().items():
+            print(f"{split:<8}{counts['images']:>10}{counts['labels']:>10}")
+        print("=" * 46)
 
-        for idx, name in self.data["names"].items():
 
-            print(f"{idx} -> {name}")
-
-        print()
-
-        train = self.count_images(DATASET_PATH / "train/images")
-        valid = self.count_images(DATASET_PATH / "valid/images")
-        test = self.count_images(DATASET_PATH / "test/images")
-
-        print("Images")
-
-        print(f"Train : {train}")
-
-        print(f"Valid : {valid}")
-
-        print(f"Test  : {test}")
-
-        print()
-
-        train_l = self.count_labels(DATASET_PATH / "train/labels")
-        valid_l = self.count_labels(DATASET_PATH / "valid/labels")
-        test_l = self.count_labels(DATASET_PATH / "test/labels")
-
-        print("Labels")
-
-        print(f"Train : {train_l}")
-
-        print(f"Valid : {valid_l}")
-
-        print(f"Test  : {test_l}")
-
-        print()
-
-        print("=" * 60)
+def main() -> None:
+    try:
+        DatasetAnalyzer().print_summary()
+    except FileNotFoundError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        raise SystemExit(1) from exc
 
 
 if __name__ == "__main__":
-
-    analyzer = DatasetAnalyzer()
-
-    analyzer.print_summary()
+    main()

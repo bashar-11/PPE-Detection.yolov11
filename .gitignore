@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Ultralytics / YOLO
+# Training outputs, evaluation reports and prediction renders are generated,
+# never committed.
+runs/
+*.torchscript
+*.onnx
+
+# Training outputs (Ultralytics)
+runs/
+
+# Weights
+# models/best.pt IS committed on purpose: it is the trained artefact this
+# project exists to serve, and the Streamlit app needs it at startup.
+# Any *other* checkpoint is reproducible and should not be committed.
+models/*.pt
+!models/best.pt
+
+# Dataset
+# The PPE Detection dataset is redistributed from Roboflow under CC BY 4.0 and
+# is not part of this repository. See README.dataset.md.
+data/
+
+# Test media
+tests/test_img/
+tests/video/
+
+# Local configuration and secrets
+.env
+.env.local
+
+# Editors / OS
+.vscode/*
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Notebooks
+.ipynb_checkpoints/

@@ -1,83 +1,66 @@
-from ultralytics import YOLO
-import yaml
+"""
+Fine-tune a YOLO11 checkpoint on the PPE detection dataset.
+
+Configuration lives in configs/train_config.yaml; the dataset definition is in
+configs/data.yaml.
+
+Usage:
+    python -m src.training.train
+"""
+
 from pathlib import Path
-# PROJECT_ROOT = Path("C:\Users\Admin\Desktop\Deep Learning\project\PPE Detection.yolov8\configs\train_config.yaml").resolve().parents[2]
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+from typing import Any, Dict
 
-CONFIG_PATH = PROJECT_ROOT / "configs" / "train_config.yaml"
+from src.utils import load_yaml, project_path
+
+CONFIG_PATH = "configs/train_config.yaml"
 
 
-
-def load_config():
-
-    with open(CONFIG_PATH, "r") as f:
-
-        config = yaml.safe_load(f)
-
+def load_train_config(path: str | Path = CONFIG_PATH) -> Dict[str, Any]:
+    """Load the training configuration."""
+    config = load_yaml(project_path(path))
+    if not config:
+        raise FileNotFoundError(
+            f"No training config found at {project_path(path)}. "
+            "Expected model, data, epochs, imgsz and batch keys."
+        )
     return config
 
 
+def check_gpu() -> str:
+    """
+    Report the available accelerator and return the device string to train on.
 
-def create_model(model_name):
+    This is the only place torch is imported for the training path, so the
+    config loader stays importable without it.
+    """
+    import torch
 
-    model = YOLO(model_name)
+    print("=" * 46)
+    print("GPU check")
+    print("=" * 46)
+    print(f"PyTorch version : {torch.__version__}")
+    print(f"CUDA available  : {torch.cuda.is_available()}")
 
-    return model
+    if not torch.cuda.is_available():
+        print("\nNo GPU found. Training on CPU.")
+        print("=" * 46)
+        return "cpu"
+
+    print(f"GPU count       : {torch.cuda.device_count()}")
+    for i in range(torch.cuda.device_count()):
+        props = torch.cuda.get_device_properties(i)
+        print(f"\nGPU {i}")
+        print(f"  Name     : {torch.cuda.get_device_name(i)}")
+        print(f"  Memory   : {props.total_memory / 1024**3:.2f} GB")
+        print(f"  CUDA cap : {props.major}.{props.minor}")
+    print("=" * 46)
+    return "0"
 
 
-
-
-
-# ####################################################
-# الهدف من الكود ده بس يختار device المناسب
-######################################################
-
-import torch
-
-
-def check_gpu():
-
-    print("=" * 60)
-    print("GPU CHECK")
-    print("=" * 60)
-
-    print(f"PyTorch Version : {torch.__version__}")
-    print(f"CUDA Available  : {torch.cuda.is_available()}")
-
-    if torch.cuda.is_available():
-
-        print(f"GPU Count       : {torch.cuda.device_count()}")
-
-        for i in range(torch.cuda.device_count()):
-
-            print(f"\nGPU {i}")
-
-            print(f"Name            : {torch.cuda.get_device_name(i)}")
-
-            props = torch.cuda.get_device_properties(i)
-
-            print(f"Memory          : {props.total_memory / 1024**3:.2f} GB")
-
-            print(f"CUDA Capability : {props.major}.{props.minor}")
-
-        device = 0
-
-    else:
-
-        print("\nNo GPU Found. Using CPU.")
-
-        device = "cpu"
-
-    print("=" * 60)
-
-    return device
-
-##################################################################################################
-
-def train_model(model, config, device):
-
+def train_model(model: Any, config: Dict[str, Any], device: str) -> None:
+    """Run Ultralytics training with the supplied configuration."""
     model.train(
-
         data=config["data"],
         epochs=config["epochs"],
         imgsz=config["imgsz"],
@@ -95,27 +78,27 @@ def train_model(model, config, device):
         save=config["save"],
         save_period=config["save_period"],
         seed=config["seed"],
-        device=device
-
+        device=device,
     )
 
 
+def main() -> None:
+    from ultralytics import YOLO
 
-
-def main():
-
+    config = load_train_config()
+    # check_gpu both reports the hardware and returns the device string.
     device = check_gpu()
 
-    config = load_config()
-
-    model = create_model(config["model"])
-
+    print(f"Training {config['model']} on {config['data']}")
+    model = YOLO(config["model"])
     train_model(model, config, device)
 
+    print(
+        "\nTraining finished.\n"
+        "Copy the best checkpoint to models/best.pt so the app picks it up:\n"
+        f"  runs/{config['project'].split('/')[-1]}/{config['name']}/weights/best.pt"
+    )
 
 
 if __name__ == "__main__":
-
     main()
-
-

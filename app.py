@@ -12,7 +12,7 @@ import time
 # ==========================
 st.set_page_config(
     page_title="Smart Safety Monitoring",
-    page_icon="🦺",
+    page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -23,7 +23,7 @@ st.markdown("""
     .st-tabs {font-weight: bold;}
     h1 {color: #1f2937; font-family: 'Inter', sans-serif;}
     
-    /* منع تمدد وبكسلة الصور وحفظ الأبعاد الأصلية */
+    /* Tinted surfaces lift off the page background */
     .stImage img {
         max-height: 480px !important;
         width: auto !important;
@@ -69,15 +69,15 @@ model = load_model()
 # ==========================
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/2051/2051515.png", width=80)
-    st.title("⚙️ Model Settings")
+    st.title("🔧 Model Settings")
     st.markdown("---")
     confidence = st.slider("🎯 Confidence Threshold", 0.1, 1.0, 0.25, 0.05)
     iou = st.slider("📏 IoU Threshold", 0.1, 1.0, 0.7, 0.05)
     
     st.markdown("---")
     st.subheader("⚡ Performance Settings")
-    img_size = st.select_slider("📐 Inference Resolution", options=[320, 480, 640], value=640, help="Lower resolution increases video processing speed.")
-    frame_skip = st.slider("⏩ Frame Skip (Speedup)", 1, 5, 1, help="Process every N-th frame for faster playback.")
+    img_size = st.select_slider("📢 Inference Resolution", options=[320, 480, 640], value=640, help="Lower resolution increases video processing speed.")
+    frame_skip = st.slider("⏱ Frame Skip (speed-up)", 1, 5, 1, help="Process every N-th frame for faster playback.")
     
     st.markdown("---")
     st.info("💡 **Tip:** Reduce Inference Resolution or increase Frame Skip if video playback feels slow.")
@@ -85,14 +85,14 @@ with st.sidebar:
 # ==========================
 # Main Title
 # ==========================
-st.title("🦺 Smart Safety Monitoring System")
+st.title("🛡️ Smart Safety Monitoring System")
 st.markdown("Real-time object detection for safety and monitoring.")
 st.markdown("---")
 
 # ==========================
 # Tabs Setup
 # ==========================
-tab1, tab2, tab3 = st.tabs(["🖼️ Image Upload", "🎥 Video Upload", "🔴 Live Camera"])
+tab1, tab2, tab3 = st.tabs(["📄 Image Upload", "🎬 Video Upload", "📱 Live Camera"])
 
 # --------------------------
 # TAB 1: Image Processing
@@ -106,7 +106,7 @@ with tab1:
         
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("<div class='video-label'>📷 Original Image</div>", unsafe_allow_html=True)
+            st.markdown("<div class='video-label'>📄 Original Image</div>", unsafe_allow_html=True)
             st.image(image, use_container_width=True)
             
         with st.spinner("Processing..."):
@@ -114,7 +114,7 @@ with tab1:
             annotated_img = results[0].plot()
             
         with col2:
-            st.markdown("<div class='video-label'>🔍 Detection Result</div>", unsafe_allow_html=True)
+            st.markdown("<div class='video-label'>🎯 Detection Result</div>", unsafe_allow_html=True)
             st.image(annotated_img, channels="BGR", use_container_width=True)
             
         # Results Table
@@ -136,7 +136,7 @@ with tab1:
             with col_b:
                 st.dataframe(df, use_container_width=True, hide_index=True)
         else:
-            st.warning("⚠️ No Objects Detected")
+            st.warning("⚠️ No objects detected.")
 
 # --------------------------
 # TAB 2: Video Processing
@@ -151,11 +151,11 @@ with tab2:
         tfile.write(uploaded_video.read())
         
         st.markdown("---")
-        start_btn = st.button("▶️ Start Synchronized Processing", type="primary", use_container_width=False)
+        start_btn = st.button("▶ Start Synchronized Processing", type="primary", use_container_width=False)
         
         col1, col2 = st.columns(2)
         with col1:
-            st.markdown("<div class='video-label'>📹 Original Stream</div>", unsafe_allow_html=True)
+            st.markdown("<div class='video-label'>📄 Original Stream</div>", unsafe_allow_html=True)
             orig_placeholder = st.empty()
         with col2:
             st.markdown("<div class='video-label'>🎯 Detection Stream</div>", unsafe_allow_html=True)
@@ -201,9 +201,9 @@ with tab3:
     
     col1, col2, _ = st.columns([1, 1, 2])
     with col1:
-        start_cam = st.button("🔴 Start Camera", use_container_width=True)
+        start_cam = st.button("📱 Start Camera", use_container_width=True)
     with col2:
-        stop_cam = st.button("⏹️ Stop Camera", use_container_width=True)
+        stop_cam = st.button("⏹ Stop Camera", use_container_width=True)
         
     cam_placeholder = st.empty()
     

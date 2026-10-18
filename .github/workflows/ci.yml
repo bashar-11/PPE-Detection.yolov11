@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Ruff check
+        run: ruff check src tests app.py
+
+      - name: Ruff format check
+        run: ruff format --check src tests app.py
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run tests
+        # The suite covers config handling, metrics formatting and repo
+        # hygiene. It never loads a model, so it needs no dataset or GPU.
+        run: pytest tests -q
+
+  hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dataset and media must stay out of the repository
+        run: |
+          if [ -d data ]; then
+            echo "::error::The dataset is committed. It is CC BY 4.0 and belongs in a release, not in git."
+            exit 1
+          fi
+          if [ -d tests/video ] || [ -d tests/test_img ]; then
+            echo "::error::Test media is committed. See .gitignore."
+            exit 1
+          fi
+          echo "Repository is clean."
+
+      - name: Large files
+        run: |
+          # GitHub warns above 50 MB and hard-blocks above 100 MB.
+          find . -path ./.git -prune -o -type f -size +50M -print | tee large.txt
+          if [ -s large.txt ]; then
+            echo "::error::Files over 50 MB are present. Use Git LFS or a Release asset."
+            exit 1
+          fi
+
+      - name: Verify every source file parses
+        run: python -m compileall -q src app.py
+
+  security:
+    name: Security scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Audit dependencies
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt || true
+
+      - name: Bandit
+        run: |
+          pip install bandit
+          bandit -r src -ll || true

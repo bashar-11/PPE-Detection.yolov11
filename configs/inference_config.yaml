@@ -1,0 +1,24 @@
+# Inference defaults shared by src/predict.py, src/predict_video.py and
+# src/webcam.py. The Streamlit app overrides these live from its sidebar, so
+# these values are the fallback when running the scripts directly.
+
+model: models/best.pt
+
+# Inference resolution. Lower is faster and lighter, at some cost to accuracy
+# on small objects such as a helmet seen from a distance.
+imgsz: 640
+
+# Minimum detection confidence. 0.25 suits still imagery; the webcam script
+# raises this to 0.30 because video frames are noisier than photos.
+conf: 0.25
+
+# Non-max suppression IoU threshold. Higher values suppress fewer duplicates.
+iou: 0.7
+
+# Inference device. Leave null to let Ultralytics auto-detect (CUDA if
+# available, otherwise CPU).
+device: null
+
+# Frame stride for video and webcam sources. 1 processes every frame; raising
+# it trades temporal smoothness for speed.
+vid_stride: 1

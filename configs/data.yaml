@@ -1,0 +1,21 @@
+# PPE Detection dataset definition for Ultralytics YOLO.
+#
+# The dataset itself is NOT stored in this repository. It is redistributed by
+# Roboflow under CC BY 4.0 — see README.dataset.md for the source and licence.
+#
+# To set it up: download the YOLO export, extract it so that this directory
+# ends up containing train/, valid/ and test/, then update `path` if you put
+# it somewhere other than data/raw/ppe_dataset.
+
+path: data/raw/ppe_dataset
+
+train: train/images
+val: valid/images
+test: test/images
+
+# Two classes, matching the dataset export.
+nc: 2
+
+names:
+  0: Reflective-Jacket
+  1: Safety-Helmet

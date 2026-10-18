@@ -1,19 +1,28 @@
+# Training configuration for the PPE detection model.
+# Consumed by src/training/train.py.
+
+# Starting checkpoint. yolo11s is the small model used here; swap to
+# yolo11n for a faster/looser fit, or yolo11m/yolo11l for higher accuracy.
 model: yolo11s.pt
 
-data: data/raw/ppe_dataset/data.yaml
+# Dataset definition. See configs/data.yaml — the dataset is not in the repo.
+data: configs/data.yaml
 
 epochs: 100
 
 imgsz: 640
 
-batch: -1          # Auto Batch
+# -1 lets Ultralytics estimate the batch size from available GPU memory.
+batch: -1
 
-workers: 2          # مناسب لـ Kaggle
+# 2 is a safe value for Kaggle / free-tier GPUs.
+workers: 2
 
 optimizer: auto
 
 lr0: 0.001
 
+# Early stopping: stop if the metric does not improve for 20 epochs.
 patience: 20
 
 project: runs/train
@@ -22,8 +31,10 @@ name: ppe_yolo11s
 
 cache: true
 
+# Cosine learning rate schedule.
 cos_lr: true
 
+# Automatic mixed precision.
 amp: true
 
 plots: true
